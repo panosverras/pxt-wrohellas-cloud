@@ -51,9 +51,8 @@ namespace WROHellasCloud {
     //% block="Cloud settings (WROHellas)|URL/IP %ip|Port %port|Station ID %sid"
     //% ip.defl="server ip"
     //% port.defl="server port"
-    //% sid.defl="this station id"
-    //% stoken.defl="this station token"
-    export function cloudSettings(ip: string, port: string, sid: string, stoken: string) {
+    //% sid.defl="unique station id"
+    export function cloudSettings(ip: string, port: string, sid: string) {
         wcip = ip
         wccp = port
         rsid = sid
