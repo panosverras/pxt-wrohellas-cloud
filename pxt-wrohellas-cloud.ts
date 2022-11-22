@@ -7,33 +7,31 @@
 namespace WROHellasCloud {
 
     let ssid: string = null
-    let pwd: string = null
-    let cloud_ip: string = ""
-    let cloud_port: string = ""
-    let station_id: string = ""
-    let station_token: string = ""
-    let mission_id: string = "ERROR"
-    let missionX: number = -999
-    let missionY: number = -999
-    let missionResult: number = -1
+    let pass: string = null
+    let wcip: string = ""               /* Cloud server IP      */
+    let wccp: string = ""               /* Cloud server port    */
+    let rsid: string = ""               /* Unique station id    */
+
     let debug = false
 
-    let wifi_connected: boolean = false
-    let cloud_connected: boolean = false
-
-
+    let debug_strings = [
+        'ERROR;00;',                    // Could not connect to wifi
+        'ERROR;01;',                    // Could connect to cloud server 
+        'ERROR;02;',                    // Error while creating mission
+        'ERROR;03;'                     // Error while finalising mission
+    ]
 
 
 
     /**
     * WiFi init settings
     */
-    //% block="WiFi settings (ESP8266)|RX (Tx of micro:bit) %tx|TX (Rx of micro:bit) %rx|Baud rate %baudrate|Wifi SSID %wifi_ssid|Wifi PW %wifi_pwd"
+    //% block="WiFi settings (ESP8266)|RX (Tx of micro:bit) %tx|TX (Rx of micro:bit) %rx|Baud rate %baudrate|Wifi SSID %w_ssid|Wifi PASS %w_pass"
     //% tx.defl=SerialPin.P0
     //% rx.defl=SerialPin.P1
-    //% wifi_ssid.defl=your_ssid
-    //% wifi_pwd.defl=your_pw
-    export function wifiSettings(tx: SerialPin, rx: SerialPin, baudrate: BaudRate, wifi_ssid: string, wifi_pwd: string) {
+    //% w_ssid.defl=your_ssid
+    //% w_pass.defl=your_pw
+    export function wifiSettings(tx: SerialPin, rx: SerialPin, baudrate: BaudRate, w_ssid: string, w_pass: string) {
         serial.redirect(
             tx,
             rx,
@@ -41,29 +39,134 @@ namespace WROHellasCloud {
         )
         serial.setRxBufferSize(128)
         serial.setTxBufferSize(128)
-        ssid = wifi_ssid
-        pwd = wifi_pwd
+        ssid = w_ssid
+        pass = w_pass
     }
 
 
+
     /**
-    * Farmbots Cloud init settings
+    * Cloud init settings
     */
-    //% block="Cloud settings (WROHellas)|URL/IP %ip|Port %port|Station ID %sid|Token %stoken"
+    //% block="Cloud settings (WROHellas)|URL/IP %ip|Port %port|Station ID %sid"
     //% ip.defl="server ip"
     //% port.defl="server port"
     //% sid.defl="this station id"
     //% stoken.defl="this station token"
     export function cloudSettings(ip: string, port: string, sid: string, stoken: string) {
-        cloud_ip = ip
-        cloud_port = port
-        station_id = sid
-        station_token = stoken
+        wcip = ip
+        wccp = port
+        rsid = sid
     }
 
 
+
+    /**
+    * Connects to WiFi router
+    */
+    //% block="WiFi connect"
+    export function wifiConnect(): boolean {
+        clearBuffer()
+        writeBuffer("AT+RESTORE", 3000) // restore to factory settings
+        clearBuffer()
+        writeBuffer("AT+RST", 2000) // reset
+        clearBuffer()
+        writeBuffer("ATE0", 500)    // disable echo mode
+        clearBuffer()
+        writeBuffer("AT+CWMODE=1", 500) // set to STA mode
+        clearBuffer()
+        writeBuffer("AT+CIPMODE=0", 500) //
+        clearBuffer()
+        writeBuffer("AT+CIPMUX=0", 500) //
+        clearBuffer()
+        writeBuffer("AT+CWAUTOCONN=1", 500) // enable reconnecting when connection is dropped
+        clearBuffer()
+        writeBuffer("AT+CWJAP=\"" + ssid + "\",\"" + pass + "\"", 5000) // connect to Wifi router
+        clearBuffer()
+        return wifiStatus()
+    }
+
+
+    /**
+    * Connects to WiFi router
+    */
+    //% block="WiFi connected?"
+    // Checks if wifi properly connected
+    export function wifiStatus(): boolean {
+        //basic.pause(1000)
+        clearBuffer()
+        writeBuffer("AT+CIFSR", 10)
+        let s = readBuffer()
+        if (s.includes("0.0.0.0")) { return false } else { return true }
+    }
+
+
+
+    /**
+    * Connect to WROHellas cloud app and start a new mission.
+    */
+    //% block="Create a mission |of type %msn"
+    export function startMission(msn: string) {
+        if (wifiStatus() == false) { return debug_strings[0] }      // Checking for an active wifi connection
+        clearBuffer()
+        cloudDisconnect()                                           // Closing any active connection with cloud server
+        let sstring = "AT+CIPSTART=\"TCP\",\"" + wcip + "\"," + wccp // + "," + "10"
+        writeBuffer(sstring, 100)                                  // connect to cloud server
+        let s = readBuffer()
+        if (!s.includes("CONNECT")) { return debug_strings[1] }     /** && s.includes("OK")) OR s.includes("ALREADY CONNECTED") {  */
+
+        sstring = rsid + ";" + msn + ";"
+        writeBuffer("AT+CIPSEND=" + (sstring.length + 2), 2000)
+        clearBuffer()
+        writeBuffer(sstring, 10) // upload data
+        let tmp = readBuffer(3000)
+        if (tmp.includes("+IPD")) {
+            let cData = tmp.split(":")
+            return cData[1]
+        } else { return debug_strings[2] }
+        cloudDisconnect()
+    }
+
+
+
+    /**
+    * Connect to WROHellas cloud app and complete mission.
+    */
+    //% block="Complete mission |with ID %mission_id |and data %mission_data"
+    export function completeMission(mission_id: string, mission_data: string) {
+        if (wifiStatus() == false) { return debug_strings[0] }      // Checking for an active wifi connection
+        clearBuffer()
+        cloudDisconnect()                                           // Closing any active connection with cloud server
+        let sstring = "AT+CIPSTART=\"TCP\",\"" + wcip + "\"," + wccp // + "," + "10"
+        writeBuffer(sstring, 100)                                  // connect to cloud server
+        let s = readBuffer()
+        if (!s.includes("CONNECT")) { return debug_strings[1] }     /** && s.includes("OK")) OR s.includes("ALREADY CONNECTED") {  */
+
+        let str: string = mission_id + ";" + mission_data + ";"
+        writeBuffer("AT+CIPSEND=" + (str.length + 2), 3000)
+        clearBuffer()
+        writeBuffer(str, 10) // upload data
+        let tmp: string = readBuffer(3000)
+        if (tmp.includes("+IPD")) {
+            let cData = tmp.split(":")
+            return cData[1]
+        } else { return debug_strings[3] }
+        cloudDisconnect()
+    }
+
+
+
+
+
+
+    /* ------------------------------------------------------------------------------------------- */
+
+
+    
+
+
     // Reads from serial rx buffer
-    function readBuf(): string {
+    function readBuffer(timeout: number = 5000): string {
         basic.pause(1000)
         let time: number = input.runningTime()
         let sData = ""
@@ -71,27 +174,31 @@ namespace WROHellasCloud {
         while (true) {
             s = serial.readString()
             if (s === "") { break } else { sData += s }
-            if (input.runningTime() - time > 10000) { break }
+            if (input.runningTime() - time > timeout) { break }
         }
         if (debug == true) { basic.showString(sData) }
         return sData
     }
 
 
-    // Reads from serial rx buffer for specific time
-    function readTimedBuf(t: number = 2000): string {
+    // Reads from serial rx buffer
+    function readBufferUntil(matchString: string, timeout: number = 5000): string {
+        basic.pause(1000)
         let time: number = input.runningTime()
         let sData = ""
-        while (input.runningTime() - time < t) {
-            sData += serial.readString()
+        let s = ""
+        while (true) {
+            s = serial.readString()
+            if (s !== "") { sData += s }
+            if (input.runningTime()-time>timeout || sData.includes(matchString) == true) { break }
         }
         if (debug == true) { basic.showString(sData) }
         return sData
     }
 
 
-    // write AT command with CR+LF ending
-    function sendAT(command: string, wait: number = 100) {
+    // write to serial tx buffer (ends with CR+LF)
+    function writeBuffer(command: string, wait: number = 100) {
         serial.writeString(command + "\u000D\u000A")
         if (debug == true) { basic.showString(command) }
         basic.pause(wait)
@@ -99,60 +206,11 @@ namespace WROHellasCloud {
 
 
     // Clears serial rx buffer
-    function clearBuf() {
+    function clearBuffer() {
         basic.pause(500)
         let b: Buffer = serial.readBuffer(0)
     }
 
-
-    // Checks if wifi properly connected
-    function wifiStatus(): boolean {
-        basic.pause(1000)
-        clearBuf()
-        sendAT("AT+CIFSR", 10)
-        let s = readTimedBuf(2000)
-        if (s.includes("0.0.0.0")) { return false } else { return true }
-    }
-
-
-    /**
-    * Connects to WiFi router
-    */
-    //% block="WiFi connect"
-    function wifiConnect() {
-        wifi_connected = false
-        sendAT("AT+RESTORE", 3000) // restore to factory settings
-        clearBuf()
-        sendAT("AT+RST", 2000) // reset
-        clearBuf()
-        sendAT("ATE0", 500)
-        clearBuf()
-        sendAT("AT+CWMODE=1", 500) // set to STA mode
-        clearBuf()
-        sendAT("AT+CIPMODE=0", 500) // 
-        clearBuf()
-        sendAT("AT+CIPMUX=0", 500) // 
-        clearBuf()
-        sendAT("AT+CWAUTOCONN=1", 500) // enable reconnecting when connection is dropped
-        clearBuf()
-        while (wifi_connected == false) {
-            sendAT("AT+CWJAP=\"" + ssid + "\",\"" + pwd + "\"", 10000) // connect to Wifi router
-            wifi_connected = wifiStatus()
-        }
-    }
-
-
-    /**
-    * Resets mission data (missionID, X, Y, result etc... )
-    */
-    //% block="Reset mission"
-    export function resetMission() {
-        cloud_connected = false
-        mission_id = "ERROR"
-        missionX = -999
-        missionY = -999
-        missionResult = -1
-    }
 
 
     /**
@@ -160,140 +218,8 @@ namespace WROHellasCloud {
     */
     //% block="Cloud disconnect"
     function cloudDisconnect() {
-        cloud_connected = false
-        sendAT("AT+CIPCLOSE", 1000)
-        clearBuf()
+        writeBuffer("AT+CIPCLOSE", 1000)
+        clearBuffer()
     }
-
-
-    /**
-    * Connects to WROHellas cloud server
-    */
-    //% block="Cloud connect"
-    function cloudConnect() {
-        cloud_connected = false
-        if (wifi_connected == false) { wifiConnect() }
-        /** if (cloud_connected == false) { cloudDisconnect() } **/
-        let s = ""
-        let counter = 0
-        clearBuf()
-        while (cloud_connected == false) {
-            cloudDisconnect()
-            clearBuf()
-            let cipstart = "AT+CIPSTART=\"TCP\",\"" + cloud_ip + "\"," + cloud_port // + "," + "10"
-            sendAT(cipstart, 10) // connect to cloud server
-            s = readTimedBuf()
-            counter = counter + 1
-            if (s.includes("CONNECT")) { /** && s.includes("OK")) OR s.includes("ALREADY CONNECTED") {  */
-                cloud_connected = true
-            }
-        }
-    }
-
-
-    /**
-    * Connect to WROHellas cloud app and start a new mission.
-    */
-    //% block="Create a farmbot mission |of type %msn"
-    export function startMission(msn: string) {
-        resetMission()
-        let time: number = input.runningTime()
-        if (cloud_connected == false) { cloudConnect() }
-        let str: string = station_id + ";" + station_token + ";" + msn + ";"
-        sendAT("AT+CIPSEND=" + (str.length + 2), 2000)
-        clearBuf()
-        sendAT(str, 10) // upload data
-        let tmp: string = readTimedBuf(3000)
-        if (tmp.includes("+IPD")) {
-            let cData = tmp.split(":")
-            cData = cData[1].split(";")
-            mission_id = cData[0]
-            missionX = parseInt(cData[1])
-            missionY = parseInt(cData[2])
-        }
-        cloudDisconnect()
-    }
-
-
-    /**
-    * Connect to WROHellas cloud app and finalize mission.
-    */
-    //% block="Finalize mission |with ID %mission_id |and data %mission_data"
-    export function endMission(mission_id: string, mission_data: string) {
-        missionResult = -1
-        if (cloud_connected == false) { cloudConnect() }
-        let str: string = station_id + ";" + station_token + ";" + mission_id + ";" + mission_data + ";"
-        sendAT("AT+CIPSEND=" + (str.length + 2), 3000)
-        clearBuf()
-        sendAT(str, 10) // upload data
-        let tmp: string = readTimedBuf(3000)
-        if (tmp.includes("+IPD")) {
-            let cData = tmp.split(":")
-            cData = cData[1].split(";")
-            missionResult = parseInt(cData[1])
-        }
-        cloudDisconnect()
-    }
-
-
-
-
-
-
-    /**
-    * Returns mission ID
-    */
-    //% block="mission ID"
-    export function getMissionID() {
-        return mission_id
-    }
-
-    /**
-    * Returns mission X
-    */
-    //% block="mission X"
-    export function getMissionX() {
-        return missionX
-    }
-
-    /**
-    * Returns mission Y
-    */
-    //% block="mission Y"
-    export function getMissionY() {
-        return missionY
-    }
-
-
-    /**
-    * Returns mission result (if applied) [0 for false / 1 for correct]
-    */
-    //% block="mission result"
-    export function getMissionResult() {
-        return missionResult
-    }
-
-
-    /**
-    * Returns true for valid mission ID or false for invalid
-    */
-    //% block="valid mission ID?"
-    export function validMissionID() {
-        if (mission_id.includes("ERROR") || mission_id.includes("error") || mission_id == null) {
-            return false
-        } else { return true }
-    }
-
-
-    /**
-    * Returns true for valid mission result or false for invalid
-    */
-    //% block="valid mission result?"
-    export function validMissionResult() {
-        if (missionResult == 0 || missionResult == 1) {
-            return true
-        } else { return false }
-    }
-
 
 }
