@@ -48,7 +48,7 @@ namespace WROHellasCloud {
     /**
     * Cloud init settings
     */
-    //% block="Cloud settings (WROHellas)|URL/IP %ip|Port %port|Station ID %sid"
+    //% block="Cloud settings (WROHellas)| URL/IP %ip| Port %port| Station ID %sid"
     //% ip.defl="server ip"
     //% port.defl="server port"
     //% sid.defl="unique station id"
@@ -64,7 +64,7 @@ namespace WROHellasCloud {
     * Connects to WiFi router
     */
     //% block="WiFi connect"
-    export function wifiConnect(): boolean {
+    export function wifiConnect() {
         clearBuffer()
         writeBuffer("AT+RESTORE", 3000) // restore to factory settings
         clearBuffer()
@@ -82,7 +82,6 @@ namespace WROHellasCloud {
         clearBuffer()
         writeBuffer("AT+CWJAP=\"" + ssid + "\",\"" + pass + "\"", 5000) // connect to Wifi router
         clearBuffer()
-        return wifiStatus()
     }
 
 
