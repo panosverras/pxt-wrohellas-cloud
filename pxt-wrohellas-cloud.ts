@@ -91,7 +91,7 @@ namespace WROHellasCloud {
     //% block="WiFi connected?"
     // Checks if wifi properly connected
     export function wifiStatus(): boolean {
-        //basic.pause(1000)
+        basic.pause(1000)
         clearBuffer()
         writeBuffer("AT+CIFSR", 10)
         let s = readBuffer()
