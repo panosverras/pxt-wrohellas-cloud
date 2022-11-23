@@ -92,43 +92,22 @@ namespace WROHellasCloud {
     * Connects to WiFi router
     */
     //% block="WiFi connected?"
-    // Checks if wifi properly connected
-    //export function wifiStatus(): boolean {
-    //    basic.pause(1000)
-    //    let cData: string[]
-    //    clearBuffer()
-    //    writeBuffer("AT+CIFSR", 10)
-    //    let s = readBuffer(3000)
-    //    //if (!s.includes(CRLF)) { s = " " + CRLF + " " }
-    //    //cData = s.split(CRLF)
-    //    //if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
-    //    //    return true
-    //    //} else { return false }
-    //    if (s.includes("0.0.0.0")) { return false } else { return true }
-    //}
-
-
-
-    /**
-    * Connects to WiFi router
-    */
-    //% block="WiFi connected?"
-    // Checks if wifi properly connected
-    //% weight=28
     //% blockGap=8
-    //% blockId=esp8266_is_wifi_connected
+    // Checks if wifi properly connected
     export function wifiStatus(): boolean {
-        // Get the connection status.
-        writeBuffer("AT+CIPSTATUS", 1000)
+        basic.pause(1000)
+        let cData: string[]
+        clearBuffer()
+        writeBuffer("AT+CIFSR", 10)
         let s = readBuffer(3000)
-        // Return the WiFi status.
-        if ((s == "") || s.includes("STATUS:5")) {
-            return false
-        }
-        else {
-            return true
-        }
+        //if (!s.includes(CRLF)) { s = " " + CRLF + " " }
+        //cData = s.split(CRLF)
+        //if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
+        //    return true
+        //} else { return false }
+        if (s.includes("0.0.0.0")) { return false } else { return true }
     }
+
 
 
 
