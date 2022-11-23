@@ -1,6 +1,6 @@
 WROHellasCloud.wifiSettings(
-SerialPin.P12,
-SerialPin.P13,
+SerialPin.P0,
+SerialPin.P1,
 BaudRate.BaudRate115200,
 "",
 ""
@@ -10,6 +10,3 @@ while (!(WROHellasCloud.wifiStatus())) {
     WROHellasCloud.wifiConnect()
 }
 basic.showIcon(IconNames.Yes)
-basic.forever(function () {
-	
-})
