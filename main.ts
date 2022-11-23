@@ -1,14 +1,15 @@
 WROHellasCloud.wifiSettings(
-SerialPin.P0,
-SerialPin.P1,
+SerialPin.P12,
+SerialPin.P13,
 BaudRate.BaudRate115200,
-"your_ssid",
-"your_pw"
+"",
+""
 )
-WROHellasCloud.cloudSettings("server ip", "server port", "unique station id")
+WROHellasCloud.wifiConnect()
 while (!(WROHellasCloud.wifiStatus())) {
     WROHellasCloud.wifiConnect()
 }
+basic.showIcon(IconNames.Yes)
 basic.forever(function () {
 	
 })
