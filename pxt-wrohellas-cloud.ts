@@ -13,6 +13,7 @@ namespace WROHellasCloud {
     let rsid: string = ""               /* Unique station id    */
 
     let debug = false
+    let CRLF = "\u000D\u000A"
 
     let debug_strings = [
         'ERROR;00;',                    // Could not connect to wifi
@@ -80,6 +81,8 @@ namespace WROHellasCloud {
         clearBuffer()
         writeBuffer("AT+CWAUTOCONN=1", 500) // enable reconnecting when connection is dropped
         clearBuffer()
+        writeBuffer("AT+SLEEP=0", 500) // disables autosleep
+        clearBuffer()
         writeBuffer("AT+CWJAP=\"" + ssid + "\",\"" + pass + "\"", 5000) // connect to Wifi router
         clearBuffer()
     }
@@ -92,10 +95,16 @@ namespace WROHellasCloud {
     // Checks if wifi properly connected
     export function wifiStatus(): boolean {
         basic.pause(1000)
+        let cData: string[]
         clearBuffer()
         writeBuffer("AT+CIFSR", 10)
-        let s = readBuffer()
-        if (s.includes("0.0.0.0")) { return false } else { return true }
+        let s = readBufferUntil("OK"+CRLF, 3000)
+        if (!s.includes(CRLF)) { s = " " + CRLF + " " }
+        cData = s.split(CRLF)
+        if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
+            return true
+        } else { return false }
+        //if (s.includes("0.0.0.0")) { return false } else { return true }
     }
 
 
@@ -197,7 +206,8 @@ namespace WROHellasCloud {
 
     // write to serial tx buffer (ends with CR+LF)
     function writeBuffer(command: string, wait: number = 100) {
-        serial.writeString(command + "\u000D\u000A")
+        //serial.writeString(command + "\u000D\u000A")
+        serial.writeString(command + CRLF)
         if (debug == true) { basic.showString(command) }
         basic.pause(wait)
     }
