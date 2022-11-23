@@ -99,12 +99,12 @@ namespace WROHellasCloud {
         clearBuffer()
         writeBuffer("AT+CIFSR", 10)
         let s = readBuffer(3000)
-        if (!s.includes(CRLF)) { s = " " + CRLF + " " }
-        cData = s.split(CRLF)
-        if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
-            return true
-        } else { return false }
-        //if (s.includes("0.0.0.0")) { return false } else { return true }
+        //if (!s.includes(CRLF)) { s = " " + CRLF + " " }
+        //cData = s.split(CRLF)
+        //if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
+        //    return true
+        //} else { return false }
+        if (s.includes("0.0.0.0")) { return false } else { return true }
     }
 
 
