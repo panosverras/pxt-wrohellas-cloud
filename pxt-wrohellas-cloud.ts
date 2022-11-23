@@ -129,9 +129,12 @@ namespace WROHellasCloud {
         let tmp = readBuffer(3000)
         if (tmp.includes("+IPD")) {
             let cData = tmp.split(":")
+            cloudDisconnect()
             return cData[1]
-        } else { return debug_strings[2] }
-        cloudDisconnect()
+        } else { 
+            cloudDisconnect()
+            return debug_strings[2] 
+        }
     }
 
 
@@ -156,9 +159,12 @@ namespace WROHellasCloud {
         let tmp: string = readBuffer(3000)
         if (tmp.includes("+IPD")) {
             let cData = tmp.split(":")
+            cloudDisconnect()
             return cData[1]
-        } else { return debug_strings[3] }
-        cloudDisconnect()
+        } else { 
+            cloudDisconnect()
+            return debug_strings[3] 
+        }
     }
 
 
