@@ -6,7 +6,6 @@ BaudRate.BaudRate115200,
 ""
 )
 WROHellasCloud.wifiConnect()
-while (!(WROHellasCloud.wifiStatus())) {
-    WROHellasCloud.wifiConnect()
+while (!(false)) {
+	
 }
-basic.showIcon(IconNames.Yes)
