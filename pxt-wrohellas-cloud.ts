@@ -98,7 +98,7 @@ namespace WROHellasCloud {
         let cData: string[]
         clearBuffer()
         writeBuffer("AT+CIFSR", 10)
-        let s = readBufferUntil("OK"+CRLF, 3000)
+        let s = readBuffer( 3000)
         if (!s.includes(CRLF)) { s = " " + CRLF + " " }
         cData = s.split(CRLF)
         if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
