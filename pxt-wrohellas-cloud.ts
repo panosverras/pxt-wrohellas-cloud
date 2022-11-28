@@ -77,6 +77,10 @@ namespace WROHellasCloud {
         clearBuffer()
         writeBuffer("AT+CIPMODE=0", 500) //
         clearBuffer()
+        if (rsid!="") {
+            writeBuffer("AT+CWHOSTNAME=\"" + rsid + "\"", 500)
+            clearBuffer()
+        }
         writeBuffer("AT+CIPMUX=0", 500) //
         clearBuffer()
         writeBuffer("AT+CWAUTOCONN=1", 500) // enable reconnecting when connection is dropped
@@ -96,16 +100,16 @@ namespace WROHellasCloud {
     // Checks if wifi properly connected
     export function wifiStatus(): boolean {
         basic.pause(1000)
-        //let cData: string[]
+        let cData: string[]
         clearBuffer()
         writeBuffer("AT+CIFSR", 10)
         let s = readBuffer(3000)
-        //if (!s.includes(CRLF)) { s = " " + CRLF + " " }
-        //cData = s.split(CRLF)
-        //if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
-        //    return true
-        //} else { return false }
-        if (s.includes("0.0.0.0")) { return false } else { return true }
+        if (!s.includes(CRLF)) { s = " " + CRLF + " " }
+        cData = s.split(CRLF)
+        if (cData[0].includes("+CIFSR:STAIP") && !cData[0].includes("0.0.0.0")) {
+            return true
+        } else { return false }
+        //if (s.includes("0.0.0.0")) { return false } else { return true }
     }
 
 
