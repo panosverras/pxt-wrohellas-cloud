@@ -229,15 +229,19 @@ namespace WROHellasCloud {
     //function clearBuffer() {
     //    basic.pause(500)
     //    let b: Buffer = serial.readBuffer(0)
+    //    basic.pause(10)
+    //    b = serial.readBuffer(0)
     //}
 
 
     // Clears serial rx buffer
     function clearBuffer() {
         basic.pause(500)
-        let s = "#"
-        while (s != "") {
-            s = serial.readLine()
+        let s = ""
+        while (true) {
+            s = serial.readString()
+            if (s === "") { break }
+            basic.pause(5)
         }
     }
 
