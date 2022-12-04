@@ -1,31 +1,49 @@
 
 > Open this page at [https://panosverras.github.io/pxt-wrohellas-cloud/](https://panosverras.github.io/pxt-wrohellas-cloud/)
 
-## Use as Extension
+# Επέκταση Makecode για σύνδεση με το υπολογιστικό νέφος του WROHellas:cloud
+## Σχετικά με αυτή την επέκταση
+Η συγκεκριμένη επέκταση επιτρέπει σε συστήματα με BBC micro:bit να συνδεθούν στο διαδίκτυο, με τη χρήση του πρόσθετου wifi esp01, καθώς και να επικοινωνήσουν με τις υπηρεσίες του υπολογιστικού νέφους του WROHellas:cloud.
 
-This repository can be added as an **extension** in MakeCode.
+Χρησιμοποιείται στην εκτέλεση αποστολών για την διαγωνιστική κατηγορία IoT & Physical Computing.
 
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **New Project**
-* click on **Extensions** under the gearwheel menu
-* search for **https://github.com/panosverras/pxt-wrohellas-cloud** and import
+## Installing extension
+Enabling this extension could be made through Makecode interface:
+- open [https://makecode.microbit.org/](https://makecode.microbit.org/)
+- click on **New Project**
+- click on **Extensions** under the gearwheel menu
+- search for [https://github.com/panosverras/pxt-wrohellas-cloud](https://github.com/panosverras/pxt-wrohellas-cloud) and import
 
-## Edit this project ![Build status badge](https://github.com/panosverras/pxt-wrohellas-cloud/workflows/MakeCode/badge.svg)
+## διαθέσιμες εντολές
+### Init
+![](image.png)
+Αυτή η εντολή αφορά την αρχικοποίηση και πρέπει να ενσωματωθεί στο πρόγραμμα σας πριν χρησιμοποιήσετε τις άλλες αντολές αυτής της επέκτασης.
+Θα πρέπει να συμπληρώσετε τα πεδία:
+- **SSID** (εισάγετε το όνομα του δικτύου wifi)
+- **PASS** (εισάγετε τον κωδικό του δικτύου wifi)
+- **WCIP** (εισάγετε την IP διεύθυνση του WROHellas:cloud)
+- **WCCP** (εισάγετε την θύρα επικοινωνίας του WROHellas:cloud) 
+- **RSID** (εισάγετε τον μοναδικό κωδικό του σταθμού σας)
 
-To edit this repository in MakeCode.
+### WIFI connect
+![](image.png)
+Χρησιμοποιώντας την εντολή αυτή επιχειρείται σύνδεση στο wifi δίκτυο με τα SSID και PASS που έχετε εισάγάγει στην εντολή **Init**. 
+Εφόσον επιτευχθεί η σύνδεση η εντολή αυτή ενεργοποιεί ρύθμιση του esp01 όπου στην περίπτωση απώλειας σύνδεσης, το esp01 αναλαμβάνει αυτόματα την επανασύνδεση.
+*Σημείωση: το esp01 είναι συμβατό με wifi δίκτυα 802.11b/g/n*
 
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **Import** then click on **Import URL**
-* paste **https://github.com/panosverras/pxt-wrohellas-cloud** and click import
+### WIFI connected?
+![](image.png)
+Η εντολή αυτή επιστρέφει **αληθές** (true) εαν υπάρχει σύνδεση με το δίκτυο ή **ψευδές** (false) εαν δεν εντοπιστεί σύνδεση.
 
-## Blocks preview
+### Start mission
+![](image.png)
+Με την εντολή αυτή γίνεται εκκίνηση μιας αποστολής. Ως παράμετρο **MISSION** λαμβάνει τον κωδικό αποστολής (3 χαρακτήρες) και επιχειρεί την επικοινωνία με τη σχετική εφαρμογή στο υπολογιστικό νέφος του WROHellas:cloud. 
+Επιστρέφει αλφαριθμητική σειρά 2 μερών (μέροςΑ;μέροςΒ;) με διαχωριστικό χαρατήρα το Ελληνικό ερωτηματικό. Το πρώτο μέρος είναι ο μοναδικός κωδικός αποστολής, ενώ το δεύτερο ο κωδικός περιοχής που θα εκτελεστεί η αποστολή αυτή.
+Σε περίπτωση λάθους το πρώτο μέρος είναι η λέξη **ERROR** ενώ το δεύτερο περιλαμβάνει τον κωδικό λάθους (δείτε παρακάτω τον πίνακα εκσφαλμάτωσης).
 
-This image shows the blocks code from the last commit in master.
-This image may take a few minutes to refresh.
+### Complete mission
+![](image.png)
+Με την εντολή αυτή γίνεται ολοκλήρωση μιας αποστολής. Η πρώτη παράμετρος **MISSION ID** αφορά τον μοναδικό κωδικό αποστολής που έχετε λάβει με την εντολή **Start mission**, ενώ η δεύτερη παράμετρος **DATA** αφορά τη μέτρηση που λάβατε. 
+Επιστρέφει αλφαριθμητική σειρά 2 μερών (μέροςΑ;μέροςΒ;) με διαχωριστικό χαρατήρα το Ελληνικό ερωτηματικό. Το πρώτο μέρος είναι ο μοναδικός κωδικός αποστολής, ενώ το δεύτερο το αποτέλεσμα ορθότητας της μέτρησης (0 για λάθος μέτρηση ή 1 για σωστή μέτρηση).
+Σε περίπτωση λάθους το πρώτο μέρος είναι η λέξη **ERROR** ενώ το δεύτερο περιλαμβάνει το κωδικό λάθους (δείτε παρακάτω τον πίνακα εκσφαλμάτωσης).
 
-![A rendered view of the blocks](https://github.com/panosverras/pxt-wrohellas-cloud/raw/master/.github/makecode/blocks.png)
-
-#### Metadata (used for search, rendering)
-
-* for PXT/microbit
-<script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>
